@@ -1,0 +1,401 @@
+% Author        : C. Pierquet
+% licence       : Released under the LaTeX Project Public License v1.3c or later, see http://www.latex-project.org/lppl.txtf
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{calculatoritems}[2024/11/10 0.1.0 Menus from classic calculators]
+
+%====HISTORIQUE
+% v 0.1.0	Initial version
+
+%====OPTION
+\newif\if@xelua \@xeluafalse
+\newif\if@amssymb \@amssymbtrue
+\DeclareOption{xelua}{\@xeluatrue}
+\DeclareOption{noamssymb}{\@amssymbfalse}
+\DeclareOption*{}
+\ProcessOptions\relax
+
+%====BASE
+\if@amssymb
+	\RequirePackage{amssymb}
+	\newcommand\nwkstri{\footnotesize\textcolor{orange}{$\blacktriangleright$}}
+\fi
+\RequirePackage{xstring}
+\RequirePackage{calc}
+\RequirePackage{simplekv}
+\RequirePackage{tcolorbox}
+\RequirePackage{circledtext}
+\usetikzlibrary{calc}
+\tcbuselibrary{skins}
+
+%====DIMs & Useful
+\newlength\calcsimmenusfsep
+\setlength\calcsimmenusfsep{1pt}
+\newlength\calcsimmenusmenutc
+\newlength\calcsimmenusitemtc
+\newlength\calcsimmenusdepth
+\newcommand\tidots{\scalebox{0.44}[0.55]{...}}
+\newcommand\casiodots{\circledtext[resize=real,width=0.75em]{$\cdots$}}
+
+%====TCSTYLES
+\tcbset{casiotc/.style={%
+		enhanced,fontupper=\calcsimmenusfont,nobeforeafter,%
+		box align=base,boxsep=\calcsimmenusfsep,%
+		boxrule=0.8pt,left=0pt,right=0pt,top=0pt,%
+		bottom=\dimexpr1pt-\calcsimmenusdepth\relax,no borderline
+	}
+}
+\tcbset{casiotcmenunoir/.style={%
+		width=\calcsimmenusmenutc,colframe=black,colback=black,%
+		colupper=white,sharp corners,rounded corners=southeast,%
+		arc=3pt,arc is angular,add to width=1pt
+	}
+}
+\tcbset{casiotcmenublanc/.style={%
+		enhanced,frame hidden,width=\calcsimmenusmenutc,%
+		colframe=black,colback=white,colupper=black,%
+		sharp corners,add to width=1pt,
+		borderline north={0.75pt}{0pt}{black},
+		borderline west={0.75pt}{0pt}{black}
+	}
+}
+\tcbset{casiotcitemnoir/.style={%
+		width=\calcsimmenusmenutc,colframe=black,%
+		colback=black,colupper=white,sharp corners,add to width=1pt
+	}
+}
+\tcbset{casiotcitemsel/.style={%
+		width=\calcsimmenusitemtc,sharp corners,%
+		colframe=black,colback=black,colupper=white
+	}
+}
+
+\tcbset{casioqd/.style={%
+		fontupper=\calcsimmenusfont,nobeforeafter,%
+		box align=base,boxsep=\calcsimmenusfsep,%
+		boxrule=0.8pt,left=0pt,right=0pt,top=0pt,%
+		bottom=\dimexpr1pt-\calcsimmenusdepth\relax,%
+	}
+}
+\tcbset{casioqdmenunoir/.style={%
+		enhanced,width=\calcsimmenusmenutc,colframe=black,%
+		colback=black,colupper=white,arc=1pt,add to width=2pt
+	}
+}
+\tcbset{casioqdmenublanc/.style={%
+		width=\calcsimmenusmenutc,colframe=black,colback=white,%
+		colupper=black,rounded corners,arc=1pt,add to width=2pt
+	}
+}
+\tcbset{casioqditemnoir/.style={%
+		width=\calcsimmenusmenutc,colframe=black,colback=black,%
+		colupper=white,sharp corners,add to width=2pt
+	}
+}
+\tcbset{casioqditemsel/.style={%
+		width=\calcsimmenusitemtc,sharp corners,colframe=black,%
+		colback=black,colupper=white,sharp corners
+	}
+}
+
+\tcbset{vignettemenunwks/.style={%
+		top=\dimexpr0.45pt+0.5\calcsimmenusfsep\relax,bottom=\dimexpr1pt-\calcsimmenusdepth\relax,%
+		left=2pt,right=2pt,fontupper=\calcsimmenusfont,nobeforeafter,%
+		box align=base,boxrule=0.45pt,boxsep=0.5\calcsimmenusfsep,sharp corners=all
+	}
+}
+
+\tcbset{vignettemenuti/.style={%
+		size=tight,boxrule=0.45pt,fontupper=\calcsimmenusfont,%
+		nobeforeafter,left=0.45pt,right=0.45pt,top=0.15pt,bottom=0.15pt,box align=base
+	}
+}
+
+\tcbset{vignettemenuhp/.style={%
+		enhanced,fontupper=\calcsimmenusfont,nobeforeafter,%
+		box align=base,boxsep=\calcsimmenusfsep,%
+		boxrule=0.8pt,left=0pt,right=0pt,top=0pt,%
+		bottom=\dimexpr1pt-\calcsimmenusdepth\relax,%
+	}
+}
+
+\tcbset{vignettemenuhpnorth/.style={%
+		width=\calcsimmenusmenutc,colupper=white,colback=darkgray!90,colframe=darkgray,%
+		sharp corners=north,add to width=2pt
+	}
+}
+\tcbset{vignettemenuhpround/.style={%
+		width=\calcsimmenusmenutc,colupper=white,colback=darkgray!90,colframe=darkgray,%
+		rounded corners,arc=1pt,add to width=2pt
+	}
+}
+\tcbset{vignettemenuhpitemsel/.style={%
+		width=\calcsimmenusitemtc,sharp corners,colframe=cyan!15,%
+		colback=cyan!15,colupper=black,sharp corners
+	}
+}
+
+\tcbset{vignettemenuhpitem/.style={%
+		sharp corners,colframe=cyan!15,colback=cyan!15,colupper=black,sharp corners
+	}
+}
+
+%====SPECIAL
+\if@xelua
+	\newfontfamily\fontNWKS{SourceCodePro-Medium} %numworks
+	\newfontfamily\fontCASIOA{AnonymousPro} %casio35
+	\newfontfamily\fontCASIOB{AlegreyaSans} %casio90
+	\newfontfamily\fontTI{AnonymousPro} %ti
+	\newfontfamily\fontHP{AlegreyaSans} %ti
+\else
+	\newcommand\fontNWKS{\fontencoding{T1}\fontfamily{SourceCodePro-TLF}\selectfont} %nwks
+	\newcommand\fontCASIOA{\fontencoding{T1}\fontfamily{AnonymousPro}\fontseries{sb}\selectfont} %casio35
+	\newcommand\fontCASIOB{\fontencoding{T1}\fontfamily{AlegreyaSans-TLF}\fontseries{sb}\selectfont} %casio90
+	\newcommand\fontTI{\fontencoding{T1}\fontfamily{AnonymousPro}\fontseries{sb}\selectfont} %ti
+	\newcommand\fontHP{\fontencoding{T1}\fontfamily{AlegreyaSans-TLF}\fontseries{sb}\selectfont} %casio90
+\fi
+
+%====KEYS
+\defKV[calcsimmenus]{%
+	model=\def\calcsimmenusmodel{#1},%
+	type=\def\calcsimmenustype{#1},%
+	fsep=\setlength\calcsimmenusfsep{#1},%
+	font=\def\calcsimmenusfont{#1},%
+	len=\def\calcsimmenuslen{#1},%
+	bg=\def\calcsimmenusbg{#1},%
+	rightsymb=\def\calcsimmenusrsymb{#1}
+}
+\setKVdefault[calcsimmenus]{%
+	model={},%
+	type={},%
+	fsep=0.5pt,%
+	font={\bfseries\ttfamily},%
+	len=auto,%
+	bg=white,%
+	rightsymb={}
+}
+
+\NewDocumentCommand\CalcItemMenu{ O{} m }{%
+	\restoreKV[calcsimmenus]%
+	\setKV[calcsimmenus]{#1}%
+	\IfEq{\calcsimmenusmodel}{}%gen model
+		{%
+			\IfEq{\calcsimmenustype}{}%white bg
+				{%
+					{\setlength{\fboxsep}{\calcsimmenusfsep}\fcolorbox{black}{white}{\vphantom{qH}\calcsimmenusfont#2}}%
+				}%
+				{}%
+			\IfEq{\calcsimmenustype}{black}%black bg
+				{%
+					{\setlength{\fboxsep}{\calcsimmenusfsep}\fcolorbox{black}{black}{\vphantom{qH}\calcsimmenusfont\textcolor{white}{#2}}}%
+				}%
+				{}%
+			{}%
+		}%
+		{}%
+	\IfEq{\calcsimmenusmodel}{35+}%
+		{%
+			\settowidth{\calcsimmenusmenutc}{\hbox{\calcsimmenusfont XXXX}}%
+			\addtolength{\calcsimmenusmenutc}{2pt}%
+			\settowidth{\calcsimmenusitemtc}{\hbox{\calcsimmenusfont XXXXXXXXXXXXXXXXXXX}}%
+			\settodepth{\calcsimmenusdepth}{\hbox{\calcsimmenusfont gH}}%
+			\IfEq{\calcsimmenuslen}{auto}%
+				{%
+					\StrLen{#2}[\calcsimmenusnbchar]%
+					\xdef\calcsimmenushscale{\fpeval{min(4/(\calcsimmenusnbchar),1)}}%
+					\xdef\calcsimmenusvscale{\fpeval{0.95*\calcsimmenushscale}}%
+				}%
+				{%
+					\xdef\calcsimmenushscale{\fpeval{min(4/(\calcsimmenuslen),1)}}%
+					\xdef\calcsimmenusvscale{\fpeval{0.95*\calcsimmenushscale}}%
+				}%
+			\IfEq{\calcsimmenustype}{}%white menu
+				{%
+					{\tcbox[tcbox width=minimum center,casiotc,casiotcmenublanc]{\vphantom{qH}\scalebox{\calcsimmenushscale}[\calcsimmenusvscale]{#2}}}%
+				}%
+				{}%
+			\IfEq{\calcsimmenustype}{bmenu}%black menu
+				{%
+					{\tcbox[tcbox width=minimum center,casiotc,casiotcmenunoir]{\vphantom{qH}\scalebox{\calcsimmenushscale}[\calcsimmenusvscale]{#2}}}%
+				}%
+				{}%
+			\IfEq{\calcsimmenustype}{item}%item
+				{%
+					{\tcbox[tcbox width=minimum center,casiotc,casiotcitemnoir]{\vphantom{qH}\scalebox{\calcsimmenushscale}[\calcsimmenusvscale]{#2}}}%
+				}%
+				{}%
+			\IfEq{\calcsimmenustype}{itemsel}%item sel
+				{%
+					{\tcbox[tcbox width=minimum left,casiotc,casiotcitemsel]{\makebox[\calcsimmenusitemtc]{\vphantom{qH}{#2}\hfill{\calcsimmenusrsymb}}}}%
+				}%
+				{}%
+		}%
+		{}%
+	\IfEq{\calcsimmenusmodel}{90+}%
+		{%
+			\settowidth{\calcsimmenusmenutc}{\hbox{\calcsimmenusfont XXXXX}}%
+			\addtolength{\calcsimmenusmenutc}{2pt}%
+			\settowidth{\calcsimmenusitemtc}{\hbox{\calcsimmenusfont XXXXXXXXXXXXXXXXXXXXXX}}%
+			\settodepth{\calcsimmenusdepth}{\hbox{\calcsimmenusfont gH}}%
+			\IfEq{\calcsimmenuslen}{auto}%
+				{%
+					\StrLen{#2}[\calcsimmenusnbchar]%
+					\xdef\calcsimmenushscale{\fpeval{min(5/(\calcsimmenusnbchar),1)}}%
+					\xdef\calcsimmenusvscale{\fpeval{0.95*\calcsimmenushscale}}%
+				}%
+				{%
+					\xdef\calcsimmenushscale{\fpeval{min(5/(\calcsimmenuslen),1)}}%
+					\xdef\calcsimmenusvscale{\fpeval{0.95*\calcsimmenushscale}}%
+				}%
+			\IfEq{\calcsimmenustype}{}%white menu
+				{%
+					{\tcbox[tcbox width=minimum center,casioqd,casioqdmenublanc]{\vphantom{qH}\scalebox{\calcsimmenushscale}[\calcsimmenusvscale]{#2}}}%
+				}%
+				{}%
+			\IfEq{\calcsimmenustype}{bmenu}%black menu
+				{%
+					{\tcbox[tcbox width=minimum center,casioqd,casioqdmenunoir,overlay={\path[fill=\calcsimmenusbg]($(frame.south east) + (0.1pt,-0.1pt)$) -- ++ (0pt,3.2pt)  -- ++ (-3.2pt,-3.2pt) -- cycle;}]{\vphantom{qH}\scalebox{\calcsimmenushscale}[\calcsimmenusvscale]{#2}}}%
+				}%
+				{}%
+			\IfEq{\calcsimmenustype}{item}%item
+				{%
+					{\tcbox[tcbox width=minimum center,casioqd,casioqditemnoir]{\vphantom{qH}\scalebox{\calcsimmenushscale}[\calcsimmenusvscale]{#2}}}%
+				}%
+				{}%
+			\IfEq{\calcsimmenustype}{itemsel}%item
+				{%
+					{\tcbox[tcbox width=minimum left,casioqd,casioqditemsel]{\makebox[\calcsimmenusitemtc]{\vphantom{qH}{#2}\hfill{\calcsimmenusrsymb}}}}%
+				}%
+				{}%
+		}%
+		{}%
+	\IfEq{\calcsimmenusmodel}{math+}%
+		{%
+			\settowidth{\calcsimmenusmenutc}{\hbox{\calcsimmenusfont XXXXX}}%
+			\addtolength{\calcsimmenusmenutc}{2pt}%
+			\settowidth{\calcsimmenusitemtc}{\hbox{\calcsimmenusfont XXXXXXXXXXXXXXXXXXXX}}%
+			\settodepth{\calcsimmenusdepth}{\hbox{\calcsimmenusfont gH}}%
+			\IfEq{\calcsimmenuslen}{auto}%
+				{%
+					\StrLen{#2}[\calcsimmenusnbchar]%
+					\xdef\calcsimmenushscale{\fpeval{min(5/(\calcsimmenusnbchar),1)}}%
+					\xdef\calcsimmenusvscale{\fpeval{0.95*\calcsimmenushscale}}%
+				}%
+				{%
+					\xdef\calcsimmenushscale{\fpeval{min(5/(\calcsimmenuslen),1)}}%
+					\xdef\calcsimmenusvscale{\fpeval{0.95*\calcsimmenushscale}}%
+				}%
+			\IfEq{\calcsimmenustype}{}%white menu
+				{%
+					{\tcbox[tcbox width=minimum left,casioqd,casioqditemnoir]{\makebox[\calcsimmenusitemtc]{\vphantom{qH}{#2}\hfill{\calcsimmenusrsymb}}}}%
+				}%
+				{}%
+		}%
+		{}%
+	\IfEq{\calcsimmenusmodel}{nwks}%
+		{%
+			\setlength{\calcsimmenusdepth}{0.375pt}%
+			\IfEq{\calcsimmenustype}{}%white menu
+				{%
+					{\tcbox[vignettemenunwks,colframe=gray,colupper=darkgray,colback=white]{\vphantom{qH}\scalebox{0.85}[0.95]{#2}}}%
+				}%
+				{}%
+			\IfEq{\calcsimmenustype}{gmenu}%gray menu
+				{%
+					{\tcbox[vignettemenunwks,colframe=lightgray!50,colupper=black,colback=lightgray!50]{\vphantom{qH}\scalebox{0.85}[0.95]{#2}}}%
+				}%
+				{}%
+			\IfEq{\calcsimmenustype}{bmenu}%dark menu
+				{%
+					\xdef\tmplengthmenunwks{}%
+					\IfEq{\calcsimmenuslen}{auto}%
+						{%
+							\foreach \i in {1,...,22}{\xdef\tmplengthmenunwks{X\tmplengthmenunwks}}%
+						}%
+						{%
+							\foreach \i in {1,...,\calcsimmenuslen}{\xdef\tmplengthmenunwks{X\tmplengthmenunwks}}%
+						}%
+					\settowidth{\calcsimmenusitemtc}{\hbox{\calcsimmenusfont\tmplengthmenunwks}}%
+					{%
+						\tcbox[width=\calcsimmenusitemtc,tcbox width=minimum left,vignettemenunwks,colframe=gray,colupper=black,colback=lightgray!75]%
+							{\makebox[\calcsimmenusitemtc]{\vphantom{qH}\scalebox{0.85}[0.95]{#2}\hfill{\calcsimmenusrsymb}}}%
+					}%
+				}%
+				{}%
+		}%
+		{}%
+	\IfEq{\calcsimmenusmodel}{ti}%
+		{%
+			\IfEq{\calcsimmenustype}{}% black menu
+				{%
+					{\tcbox[vignettemenuti,colback=black,colframe=black,colupper=white]{\vphantom{qH}\scalebox{0.9}[1]{#2}}}%
+				}%
+				{}%
+			\IfEq{\calcsimmenustype}{menu}% menu sel
+				{%
+					{\tcbox[vignettemenuti,colback=white,colframe=black,colupper=black]{\vphantom{[A]/Fiy}\scalebox{0.9}[1]{#2}}}%
+				}%
+				{}%
+			\IfEq{\calcsimmenustype}{itemsel}%item sel
+				{%
+					\StrCut{#2}{§}{\calcsimmenusnb}{\calcsimmenuslab}%
+					{%
+						\tcbox[vignettemenuti,colback=black,colframe=black,colupper=white]{\vphantom{[A]/Fiy}\scalebox{0.9}[1]{\calcsimmenusnb:}}%
+						\hspace*{-0.225pt}%
+						\tcbox[vignettemenuti,colback=white,colframe=black,colupper=black]{\vphantom{[A]/Fiy}\scalebox{0.9}[1]{\calcsimmenuslab}}}%
+				}%
+				{}%
+		}%
+		{}%
+	\IfEq{\calcsimmenusmodel}{hp}%
+		{%
+			\settowidth{\calcsimmenusmenutc}{\hbox{\calcsimmenusfont XXXXX}}%
+			\addtolength{\calcsimmenusmenutc}{2pt}%
+			\settowidth{\calcsimmenusitemtc}{\hbox{\calcsimmenusfont XXXXXXXXXXXXXXXXXXXXX}}%
+			\settodepth{\calcsimmenusdepth}{\hbox{\calcsimmenusfont gH}}%
+			\IfEq{\calcsimmenuslen}{auto}%
+				{%
+					\StrLen{#2}[\calcsimmenusnbchar]%
+					\xdef\calcsimmenushscale{\fpeval{min(5/(\calcsimmenusnbchar),1)}}%
+					\xdef\calcsimmenusvscale{\fpeval{0.95*\calcsimmenushscale}}%
+				}%
+				{%
+					\xdef\calcsimmenushscale{\fpeval{min(5/(\calcsimmenuslen),1)}}%
+					\xdef\calcsimmenusvscale{\fpeval{0.95*\calcsimmenushscale}}%
+				}%
+			\IfEq{\calcsimmenustype}{}%bottom rounded
+				{%
+					{\tcbox[tcbox width=minimum center,vignettemenuhp,vignettemenuhpnorth]{\vphantom{qH}\scalebox{\calcsimmenushscale}[\calcsimmenusvscale]{#2}}}%
+				}%
+				{}%
+			\IfEq{\calcsimmenustype}{ritem}%rounded item
+				{%
+					{\tcbox[tcbox width=minimum center,vignettemenuhp,vignettemenuhpround]{\vphantom{qH}\scalebox{\calcsimmenushscale}[\calcsimmenusvscale]{#2}}}%
+				}%
+				{}%
+			\IfEq{\calcsimmenustype}{item}%item
+				{%
+					\StrCut{#2}{§}{\calcsimmenusnb}{\calcsimmenuslab}%
+					{%
+						\tcbox[vignettemenuhp,vignettemenuhp,vignettemenuhpitem]%
+							{\vphantom{qH}\raisebox{0.75\calcsimmenusdepth}{\scalebox{0.66}[0.66]{\calcsimmenusnb}}\,{\calcsimmenuslab}{\calcsimmenusrsymb}}%
+					}%
+				}%
+				{}%
+			\IfEq{\calcsimmenustype}{itemsel}%item
+				{%
+					\StrCut{#2}{§}{\calcsimmenusnb}{\calcsimmenuslab}%
+					{%
+						\tcbox[tcbox width=minimum left,vignettemenuhp,vignettemenuhpitemsel]{%
+							\makebox[\calcsimmenusitemtc]{%
+								\vphantom{qH}\raisebox{0.75\calcsimmenusdepth}{\scalebox{0.66}[0.66]{\calcsimmenusnb}}\,{\calcsimmenuslab}\hfill{\calcsimmenusrsymb}%
+							}%
+						}%
+					}%
+				}%
+				{}%
+		}%
+		{}%
+}
+
+\endinput
